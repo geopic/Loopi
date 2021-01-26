@@ -1,0 +1,35 @@
+{
+  "name": "loopi",
+  "version": "0.9.0",
+  "description": "An implementation of a game loop for browser-based games.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [
+    "game",
+    "loop"
+  ],
+  "author": "George Pickering",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/geopic/loopi.git"
+  },
+  "bugs": {
+    "url": "https://github.com/geopic/loopi/issues"
+  },
+  "homepage": "https://github.com/geopic/loopi",
+  "devDependencies": {
+    "@types/jest": "^26.0.19",
+    "@types/node": "^14.14.16",
+    "jest": "^26.6.3",
+    "ts-jest": "^26.4.4",
+    "tslib": "^2.0.3",
+    "typescript": "^4.1.3"
+  }
+}
