@@ -7,13 +7,13 @@ type LoopiEvent = {
   /**
    * A function which returns a condition, i.e. anything which evaluates to a
    * boolean value.
-   *
    * @example
+   *
    * ```ts
-   * const loop = new Loopi();
+   * const loop = loopi();
    *
    * loop.addEvent({
-   *   // For every 5 ticks of active game time...
+   *   // For every 5 ticks of active (unpaused) game time...
    *   condition: () => loop.stats.ticksExclPaused % 5 === 0,
    * ```
    */
@@ -22,8 +22,8 @@ type LoopiEvent = {
   /**
    * A function which runs the code inside it every time the `condition`
    * function returns `true`.
-   *
    * @example
+   *
    * ```ts
    *   // ...make the main character self-combust.
    *   action: () => goodGuy.explodeIntoFlames(),
@@ -36,102 +36,18 @@ type LoopiEvent = {
    * If set to `true`, this event is treated like a (do-)while loop: "while
    * _condition_, do _action_". `false` by default, so the action only runs
    * _once_ when the condition is met.
-   *
    * @example
+   *
    *   // Once is enough.
    *   runWhile: false
    * });
    */
   runWhile: boolean;
+
+  _isActive: boolean;
 };
 
-/**
- * These are the options which are passed to the constructor.
- */
-type LoopiOptions = Partial<{
-  /**
-   * Set a custom number of _ticks_ that occur for every second of real-world
-   * time.
-   * @default 1
-   *
-   * @example
-   * ```ts
-   * import Loopi from "loopi";
-   *
-   * // This allows you to check for events every 1/5 (fifth) of a second
-   * const loop = new Loopi({ ticksPerSecond: 5 });
-   * ```
-   */
-  ticksPerSecond: number;
-}>;
-
-/**
- * These are the statistics for the loop, useful for checking how many ticks
- * have passed and/or for debugging.
- */
-type LoopiStats = {
-  /**
-   * The amount of ticks that have occurred in the game loop since
-   * initialisation. Use `ticksExclPaused` if you want to measure ticks for
-   * event conditions, since this number increments whether the game is paused
-   * or not.
-   */
-  ticks: number;
-
-  /**
-   * The amount of ticks that have occurred in the game loop while the game has
-   * been in an 'unpaused' state. Use this in event conditions when you want
-   * something to be checked every _n_ ticks.
-   */
-  ticksExclPaused: number;
-
-  /**
-   * The amount of ticks that occur in every real-world second. If not set when
-   * the class was instantiated, then its default is `1`.
-   */
-  ticksPerSecond: number;
-};
-
-interface LoopiEventMethods {
-  /**
-   * TODO: add documentation
-   */
-  add: (event: LoopiEvent) => void;
-
-  /**
-   * TODO: add documentation
-   */
-  get: (index: number) => LoopiEvent;
-
-  /**
-   * TODO: add documentation
-   */
-  getAll: () => LoopiEvent[];
-
-  /**
-   * TODO: add documentation
-   */
-  remove: (index: number) => void;
-
-  /**
-   * TODO: add documentation
-   */
-  removeAll: () => void;
-}
-
-interface LoopiOptionMethods {
-  /**
-   * TODO: add documentation
-   */
-  changeTps: (newTicksPerSecond: number) => void;
-
-  /**
-   * TODO: add documentation
-   */
-  togglePauseState: () => void;
-}
-
-export default class Loopi {
+class LoopiClass {
   private _options: LoopiOptions;
   private _requestAnimationFrameId: number;
   private _paused: boolean;
@@ -139,19 +55,14 @@ export default class Loopi {
   private _lastTime: number;
   private _ticks: number;
   private _ticksPerSecond: number;
-  private _events: (LoopiEvent & { _isActive: boolean })[];
+  private _events: LoopiEvent[];
 
   private _unpausedTimestamp: number;
   private _unpausedLastTime: number;
   private _unpausedDeltaTime: number;
   private _unpausedTicks: number;
 
-  /**
-   * Initialise an active game loop.
-   * @param options Options to pass -- see the
-   * [API documentation](https://github.com/geopic/loopi) for details.
-   */
-  constructor(options: LoopiOptions = { ticksPerSecond: 1 }) {
+  constructor(options: LoopiOptions) {
     try {
       window;
     } catch {
@@ -165,7 +76,7 @@ export default class Loopi {
 
     this._lastTime = 0;
     this._ticks = 0;
-    this._ticksPerSecond = options?.ticksPerSecond ?? 1;
+    this._ticksPerSecond = options.ticksPerSecond || 1;
     this._events = [];
 
     this._unpausedTimestamp = 0;
@@ -176,57 +87,6 @@ export default class Loopi {
     this._requestAnimationFrameId = window.requestAnimationFrame(
       this._update.bind(this)
     );
-  }
-
-  /**
-   * TODO: add documentation
-   */
-  get events(): LoopiEventMethods {
-    const self = this;
-    return {
-      add(e) {
-        self._events.push({ ...e, _isActive: false });
-      },
-      get(i) {
-        return self._events[i];
-      },
-      getAll() {
-        return self._events;
-      },
-      remove(i = 0) {
-        self._events.splice(i, 1);
-      },
-      removeAll() {
-        self._events = [];
-      }
-    };
-  }
-
-  /**
-   * TODO: add documentation
-   */
-  get stats(): LoopiStats {
-    return {
-      ticks: +this._ticks.toFixed(0),
-      ticksExclPaused: +this._unpausedTicks.toFixed(0),
-      ticksPerSecond: this._ticksPerSecond
-    };
-  }
-
-  /**
-   * TODO: add documentation
-   */
-  get utils(): LoopiOptionMethods {
-    const self = this;
-    return {
-      changeTps(newTps) {
-        self._ticksPerSecond = newTps;
-        self._options.ticksPerSecond = newTps;
-      },
-      togglePauseState() {
-        self._paused = !self._paused;
-      }
-    };
   }
 
   private _update(timestamp: number): void {
@@ -254,7 +114,7 @@ export default class Loopi {
     this._lastTime = timestamp;
 
     for (const event of this._events) {
-      if (event.condition()) {
+      if (event.condition() && !this._paused) {
         if (event._isActive && !event.runWhile) {
           break;
         }
@@ -271,9 +131,129 @@ export default class Loopi {
   }
 
   /**
-   * TODO: add documentation
+   * The stats object for this Loopi instance, see the [API documentation](https://github.com/geopic/loopi)
+   * for details.
    */
-  end() {
+  get stats() {
+    return {
+      /**
+       * TODO: write documentation
+       */
+      ticks: this._ticks,
+
+      /**
+       * TODO: write documentation
+       */
+      ticksUnpaused: this._unpausedTicks,
+
+      /**
+       * TODO: write documentation
+       */
+      tps: this._ticksPerSecond
+    };
+  }
+
+  /**
+   * Add a new event object to the game loop. Refer to the
+   * [API documentation](https://github.com/geopic/loopi) for details.
+   */
+  addEvent(event: Omit<LoopiEvent, '_isActive'>): void {
+    this._events.push({ ...event, _isActive: false });
+  }
+
+  /**
+   * Retrieve the object representation of a particular event from the
+   * (zero-indexed) collection of Loopi events.
+   */
+  getEvent(index: number): Omit<LoopiEvent, '_isActive'> {
+    return this._events[index];
+  }
+
+  /**
+   * Retrieve all Loopi events in standard array form.
+   */
+  getEventAll(): Omit<LoopiEvent, '_isActive'>[] {
+    return this._events;
+  }
+
+  /**
+   * Remove a particular event at a specific index from the (zero-indexed)
+   * collection of Loopi events. It is advisable to retrieve the array of
+   * events with `getEventAll` first to check which event belongs at which
+   * position.
+   * @param index The position of the event to remove.
+   */
+  removeEvent(index: number): void {
+    this._events.splice(index, 1);
+  }
+
+  /**
+   * Remove all events from the loop.
+   */
+  removeEventAll(): void {
+    this._events = [];
+  }
+
+  /**
+   * Set the game to a paused state.
+   */
+  pauseGame(): void {
+    this._paused = true;
+  }
+
+  /**
+   * Set the game to a resumed (unpaused) state.
+   */
+  resumeGame(): void {
+    this._paused = false;
+  }
+
+  /**
+   * Change the rate of ticks that pass in every real-world second.
+   * @param newTicksPerSecond The new rate of ticks per second.
+   */
+  changeTps(newTicksPerSecond: number) {
+    this._options.ticksPerSecond = newTicksPerSecond;
+  }
+
+  /**
+   * Terminate the game loop.
+   *
+   * **WARNING:** This ends the game loop _permanently_, so you won't be able to
+   * use the same instance of `loopi` again. To simply _pause_ the game
+   * (which is what you want in most cases, since it won't kill its loop
+   * _completely_), please use the `pauseGame` method.
+   */
+  endLoop(): void {
     window.cancelAnimationFrame(this._requestAnimationFrameId);
   }
+}
+
+/**
+ * These are the options which are passed to the constructor.
+ */
+type LoopiOptions = {
+  /**
+   * Set a custom number of _ticks_ that occur for every second of real-world
+   * time.
+   * @default 1
+   *
+   * @example
+   * ```ts
+   * import loopi from "loopi";
+   *
+   * // This allows you to check for events every 1/5 (fifth) of a second
+   * const loop = loopi({ ticksPerSecond: 5 });
+   * ```
+   */
+  ticksPerSecond?: number;
+};
+
+/**
+ * Initialise an active game loop with an API to add 'events' (occurrences or
+ * 'checks' per game tick).
+ * @param [options] Options to pass. See the [API documentation](https://github.com/geopic/loopi) for details.
+ */
+export default function loopi(options: LoopiOptions = {}): LoopiClass {
+  return new LoopiClass(options);
 }

@@ -1,26 +1,19 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var tslib_1 = require("tslib");
-var Loopi = /** @class */ (function () {
-    /**
-     * Initialise an active game loop.
-     * @param options Options to pass -- see the
-     * [API documentation](https://github.com/geopic/loopi) for details.
-     */
-    function Loopi(options) {
-        if (options === void 0) { options = { ticksPerSecond: 1 }; }
-        var _a;
+var LoopiClass = /** @class */ (function () {
+    function LoopiClass(options) {
         try {
             window;
         }
-        catch (_b) {
+        catch (_a) {
             throw new Error("Note from Loopi:\n\nThis library is intended for use in a web browser (front-end) environment.\n\nIf you want to keep a Node script running continuously, use a process management tool like 'pm2' or 'forever'.");
         }
         this._options = options;
         this._paused = false;
         this._lastTime = 0;
         this._ticks = 0;
-        this._ticksPerSecond = (_a = options === null || options === void 0 ? void 0 : options.ticksPerSecond) !== null && _a !== void 0 ? _a : 1;
+        this._ticksPerSecond = options.ticksPerSecond || 1;
         this._events = [];
         this._unpausedTimestamp = 0;
         this._unpausedLastTime = 0;
@@ -28,68 +21,7 @@ var Loopi = /** @class */ (function () {
         this._unpausedTicks = 0;
         this._requestAnimationFrameId = window.requestAnimationFrame(this._update.bind(this));
     }
-    Object.defineProperty(Loopi.prototype, "events", {
-        /**
-         * TODO: add documentation
-         */
-        get: function () {
-            var self = this;
-            return {
-                add: function (e) {
-                    self._events.push(tslib_1.__assign(tslib_1.__assign({}, e), { _isActive: false }));
-                },
-                get: function (i) {
-                    return self._events[i];
-                },
-                getAll: function () {
-                    return self._events;
-                },
-                remove: function (i) {
-                    if (i === void 0) { i = 0; }
-                    self._events.splice(i, 1);
-                },
-                removeAll: function () {
-                    self._events = [];
-                }
-            };
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Loopi.prototype, "stats", {
-        /**
-         * TODO: add documentation
-         */
-        get: function () {
-            return {
-                ticks: +this._ticks.toFixed(0),
-                ticksExclPaused: +this._unpausedTicks.toFixed(0),
-                ticksPerSecond: this._ticksPerSecond
-            };
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Object.defineProperty(Loopi.prototype, "utils", {
-        /**
-         * TODO: add documentation
-         */
-        get: function () {
-            var self = this;
-            return {
-                changeTps: function (newTps) {
-                    self._ticksPerSecond = newTps;
-                    self._options.ticksPerSecond = newTps;
-                },
-                togglePauseState: function () {
-                    self._paused = !self._paused;
-                }
-            };
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Loopi.prototype._update = function (timestamp) {
+    LoopiClass.prototype._update = function (timestamp) {
         var e_1, _a;
         var deltaTime;
         if (this._lastTime > 0) {
@@ -113,7 +45,7 @@ var Loopi = /** @class */ (function () {
         try {
             for (var _b = tslib_1.__values(this._events), _c = _b.next(); !_c.done; _c = _b.next()) {
                 var event_1 = _c.value;
-                if (event_1.condition()) {
+                if (event_1.condition() && !this._paused) {
                     if (event_1._isActive && !event_1.runWhile) {
                         break;
                     }
@@ -134,12 +66,105 @@ var Loopi = /** @class */ (function () {
         }
         this._requestAnimationFrameId = window.requestAnimationFrame(this._update.bind(this));
     };
+    Object.defineProperty(LoopiClass.prototype, "stats", {
+        /**
+         * The stats object for this Loopi instance, see the [API documentation](https://github.com/geopic/loopi)
+         * for details.
+         */
+        get: function () {
+            return {
+                /**
+                 * TODO: write documentation
+                 */
+                ticks: this._ticks,
+                /**
+                 * TODO: write documentation
+                 */
+                ticksUnpaused: this._unpausedTicks,
+                /**
+                 * TODO: write documentation
+                 */
+                tps: this._ticksPerSecond
+            };
+        },
+        enumerable: false,
+        configurable: true
+    });
     /**
-     * TODO: add documentation
+     * Add a new event object to the game loop. Refer to the
+     * [API documentation](https://github.com/geopic/loopi) for details.
      */
-    Loopi.prototype.end = function () {
+    LoopiClass.prototype.addEvent = function (event) {
+        this._events.push(tslib_1.__assign(tslib_1.__assign({}, event), { _isActive: false }));
+    };
+    /**
+     * Retrieve the object representation of a particular event from the
+     * (zero-indexed) collection of Loopi events.
+     */
+    LoopiClass.prototype.getEvent = function (index) {
+        return this._events[index];
+    };
+    /**
+     * Retrieve all Loopi events in standard array form.
+     */
+    LoopiClass.prototype.getEventAll = function () {
+        return this._events;
+    };
+    /**
+     * Remove a particular event at a specific index from the (zero-indexed)
+     * collection of Loopi events. It is advisable to retrieve the array of
+     * events with `getEventAll` first to check which event belongs at which
+     * position.
+     * @param index The position of the event to remove.
+     */
+    LoopiClass.prototype.removeEvent = function (index) {
+        this._events.splice(index, 1);
+    };
+    /**
+     * Remove all events from the loop.
+     */
+    LoopiClass.prototype.removeEventAll = function () {
+        this._events = [];
+    };
+    /**
+     * Set the game to a paused state.
+     */
+    LoopiClass.prototype.pauseGame = function () {
+        this._paused = true;
+    };
+    /**
+     * Set the game to a resumed (unpaused) state.
+     */
+    LoopiClass.prototype.resumeGame = function () {
+        this._paused = false;
+    };
+    /**
+     * Change the rate of ticks that pass in every real-world second.
+     * @param newTicksPerSecond The new rate of ticks per second.
+     */
+    LoopiClass.prototype.changeTps = function (newTicksPerSecond) {
+        this._options.ticksPerSecond = newTicksPerSecond;
+    };
+    /**
+     * Terminate the game loop.
+     *
+     * **WARNING:** This ends the game loop _permanently_, so you won't be able to
+     * use the same instance of `loopi` again. To simply _pause_ the game
+     * (which is what you want in most cases, since it won't kill its loop
+     * _completely_), please use the `pauseGame` method.
+     */
+    LoopiClass.prototype.endLoop = function () {
         window.cancelAnimationFrame(this._requestAnimationFrameId);
     };
-    return Loopi;
+    return LoopiClass;
 }());
-exports.default = Loopi;
+/**
+ * Initialise an active game loop with an API to add 'events' (occurrences or
+ * 'checks' per game tick).
+ * @param [options] Options to pass. See the [API documentation](https://github.com/geopic/loopi) for details.
+ */
+function loopi(options) {
+    if (options === void 0) { options = {}; }
+    return new LoopiClass(options);
+}
+exports.default = loopi;
