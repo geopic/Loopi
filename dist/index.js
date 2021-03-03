@@ -95,6 +95,9 @@ var LoopiClass = /** @class */ (function () {
      * [API documentation](https://github.com/geopic/loopi) for details.
      */
     LoopiClass.prototype.addEvent = function (event) {
+        if (event.runWhile === undefined) {
+            event.runWhile = false;
+        }
         this._events.push(tslib_1.__assign(tslib_1.__assign({}, event), { _isActive: false }));
     };
     /**

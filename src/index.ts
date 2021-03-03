@@ -158,6 +158,10 @@ class LoopiClass {
    * [API documentation](https://github.com/geopic/loopi) for details.
    */
   addEvent(event: Omit<LoopiEvent, '_isActive'>): void {
+    if (event.runWhile === undefined) {
+      event.runWhile = false;
+    }
+
     this._events.push({ ...event, _isActive: false });
   }
 
