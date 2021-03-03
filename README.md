@@ -57,7 +57,7 @@ A function which runs the code inside it every time the `condition` function ret
 
 Type: `boolean`
 
-A simple boolean which decides how the game loop should treat the event. If set to `true`, this event is treated like a (do-)while loop: "while _condition_, do _action_". `false` by default, so the action only runs _once_ when the condition is met.
+A simple and optional boolean which decides how the game loop should treat the event. If set to `true`, this event is treated like a (do-)while loop: "while _condition_, do _action_". `false` by default, so the action only runs _once_ when the condition is met.
 
 ```ts
   // Once is enough.
