@@ -9,11 +9,12 @@ var LoopiClass = /** @class */ (function () {
         catch (_a) {
             throw new Error("Note from Loopi:\n\nThis library is intended for use in a web browser (front-end) environment.\n\nIf you want to keep a Node script running continuously, use a process management tool like 'pm2' or 'forever'.");
         }
-        this._options = options;
+        this._options = Object.assign({ randomNumberCeiling: 101, ticksPerSecond: 1 }, options);
         this._paused = false;
+        this._randNum = Math.floor(Math.random() * this._options.randomNumberCeiling);
         this._lastTime = 0;
         this._ticks = 0;
-        this._ticksPerSecond = options.ticksPerSecond || 1;
+        this._ticksPerSecond = this._options.ticksPerSecond;
         this._events = [];
         this._unpausedTimestamp = 0;
         this._unpausedLastTime = 0;
@@ -64,8 +65,19 @@ var LoopiClass = /** @class */ (function () {
             }
             finally { if (e_1) throw e_1.error; }
         }
+        this._randNum = Math.floor(Math.random() * this._options.randomNumberCeiling);
         this._requestAnimationFrameId = window.requestAnimationFrame(this._update.bind(this));
     };
+    Object.defineProperty(LoopiClass.prototype, "randNum", {
+        /**
+         * TODO: write documentation
+         */
+        get: function () {
+            return this._randNum;
+        },
+        enumerable: false,
+        configurable: true
+    });
     Object.defineProperty(LoopiClass.prototype, "stats", {
         /**
          * The stats object for this Loopi instance, see the [API documentation](https://github.com/geopic/loopi)

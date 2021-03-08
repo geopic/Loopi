@@ -39,6 +39,14 @@ describe('loopi', () => {
     });
   });
 
+  describe('randNum', () => {
+    test('retrieves a random number between 0 and 100 by default', () => {
+      const n = loopi().randNum;
+      expect(n).toBeGreaterThanOrEqual(0);
+      expect(n).toBeLessThanOrEqual(100);
+    });
+  });
+
   describe('stats', () => {
     test('retrieves the stats object', () => {
       expect(loopi().stats).toBeDefined();

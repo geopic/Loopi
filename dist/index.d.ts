@@ -43,10 +43,43 @@ declare type LoopiEvent = {
     runWhile?: boolean;
     _isActive: boolean;
 };
+/**
+ * These are the options which are passed to the constructor.
+ */
+declare type LoopiOptions = {
+    /**
+     * The `n` number used in `Math.floor(Math.random() * n)` to define the top
+     * range of random numbers generated in every tick of the game loop.
+     * @default 101
+     *
+     * @example
+     * ```ts
+     * import loopi from "loopi";
+     *
+     * // A random number (from 0 to 50) will be generated with every tick
+     * const loop = loopi({ randomNumberCeiling: 51 });
+     * ```
+     */
+    randomNumberCeiling: number;
+    /**
+     * The number of _ticks_ that occur for every second of real-world time.
+     * @default 1
+     *
+     * @example
+     * ```ts
+     * import loopi from "loopi";
+     *
+     * // This allows you to check for events every 1/5 (fifth) of a second
+     * const loop = loopi({ ticksPerSecond: 5 });
+     * ```
+     */
+    ticksPerSecond: number;
+};
 declare class LoopiClass {
     private _options;
     private _requestAnimationFrameId;
     private _paused;
+    private _randNum;
     private _lastTime;
     private _ticks;
     private _ticksPerSecond;
@@ -55,8 +88,12 @@ declare class LoopiClass {
     private _unpausedLastTime;
     private _unpausedDeltaTime;
     private _unpausedTicks;
-    constructor(options: LoopiOptions);
+    constructor(options?: Partial<LoopiOptions>);
     private _update;
+    /**
+     * TODO: write documentation
+     */
+    get randNum(): number;
     /**
      * The stats object for this Loopi instance, see the [API documentation](https://github.com/geopic/loopi)
      * for details.
@@ -125,28 +162,9 @@ declare class LoopiClass {
     endLoop(): void;
 }
 /**
- * These are the options which are passed to the constructor.
- */
-declare type LoopiOptions = {
-    /**
-     * Set a custom number of _ticks_ that occur for every second of real-world
-     * time.
-     * @default 1
-     *
-     * @example
-     * ```ts
-     * import loopi from "loopi";
-     *
-     * // This allows you to check for events every 1/5 (fifth) of a second
-     * const loop = loopi({ ticksPerSecond: 5 });
-     * ```
-     */
-    ticksPerSecond?: number;
-};
-/**
  * Initialise an active game loop with an API to add 'events' (occurrences or
  * 'checks' per game tick).
  * @param [options] Options to pass. See the [API documentation](https://github.com/geopic/loopi) for details.
  */
-export default function loopi(options?: LoopiOptions): LoopiClass;
+export default function loopi(options?: Partial<LoopiOptions>): LoopiClass;
 export {};
